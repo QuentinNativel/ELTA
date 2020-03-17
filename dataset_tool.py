@@ -2,6 +2,7 @@ import pandas as pd
 import re
 import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 import os
