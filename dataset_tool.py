@@ -2,13 +2,12 @@ import pandas as pd
 import re
 import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.ensemble import AdaBoostClassifier
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 import os
 
 
-def load_data(train_path, label_path, token_path= 'tokens.csv',test_size=0.33):
+def load_data(train_path, label_path, test, token_path='tokens.csv', test_size=0.33):
     y_df = pd.read_csv(label_path)
     if not os.path.isfile(token_path):
         print("Pre-procesing data")
@@ -23,8 +22,10 @@ def load_data(train_path, label_path, token_path= 'tokens.csv',test_size=0.33):
     tfidf = TfidfVectorizer()
     X = tfidf.fit_transform(x_df['tokens'])
     y = y_df.prdtypecode
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
-    return X_train, X_test, y_train, y_test
+    if test:
+        return train_test_split(X, y, test_size=test_size, random_state=42)
+    else:
+        return X, y
 
 
 def normalize_accent(string):
