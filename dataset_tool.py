@@ -5,6 +5,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 import os
+from imblearn.over_sampling import SMOTE
 
 
 def load_data(train_path, label_path, test, token_path='tokens.csv', test_size=0.33):
@@ -17,7 +18,7 @@ def load_data(train_path, label_path, test, token_path='tokens.csv', test_size=0
         x_df['tokens'] = x_df['designation'].progress_apply(lambda s: raw_to_tokens(s, spacy_nlp))
         x_df.to_csv('./tokens.csv')
     else:
-        x_df = pd.read_csv('tokens.csv')
+        x_df = pd.read_csv(token_path)
     x_df, y_df = x_df[~ x_df.tokens.isna()], y_df[~ x_df.tokens.isna()]
     tfidf = TfidfVectorizer()
     X = tfidf.fit_transform(x_df['tokens'])
@@ -26,6 +27,11 @@ def load_data(train_path, label_path, test, token_path='tokens.csv', test_size=0
         return train_test_split(X, y, test_size=test_size, random_state=42)
     else:
         return X, y
+
+
+def smote_training(X,y):
+    smote = SMOTE(random_state=0)
+    return smote.fit_sample(X, y)
 
 
 def normalize_accent(string):
@@ -56,3 +62,4 @@ def raw_to_tokens(raw_string, spacy_nlp):
     string_tokens = [token.orth_ for token in spacy_tokens if not token.is_punct if not token.is_stop]
     clean_string = " ".join(string_tokens)
     return clean_string
+
