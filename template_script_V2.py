@@ -3,7 +3,7 @@
     
     This script serves as a template. Please use proper comments and meaningful variable names.
 """
-from dataset_tool import load_data
+from dataset_tool import load_data, smote_training
 
 """
     Group Members:
@@ -16,7 +16,7 @@ from dataset_tool import load_data
     Import necessary packages
 """
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, BaggingClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from sklearn import tree
@@ -41,33 +41,44 @@ from sklearn import tree
 """
 
 
+def model_decision_tree(X_train, y_train, X_test, y_test):
+    X_smote, y_smote = smote_training(X_train, y_train)
+    clf = tree.DecisionTreeClassifier()
+    clf.fit(X_smote, y_smote)
+    y_pred = clf.predict(X_test)
+    dt_f1 = f1_score(y_test, y_pred, average="weighted")
+    dt_accuracy = accuracy_score(y_test, y_pred)
+    return dt_accuracy, dt_f1
+
+
+def model_bagging(X_train, y_train, X_test, y_test):
+    clf_bag = BaggingClassifier(tree.DecisionTreeClassifier(), max_samples=0.3)
+    X_smote, y_smote = smote_training(X_train, y_train)
+    clf_bag.fit(X_smote, y_smote)
+    y_pred_bag = clf_bag.predict(X_test)
+    bag_f1 = f1_score(y_test, y_pred_bag, average="weighted")
+    bag_accuracy = accuracy_score(y_test, y_pred_bag)
+    return bag_accuracy, bag_f1
+
+
 def model_random_forest(X_train, y_train, X_test, y_test):
-    """
-    @param: X_train - a numpy matrix containing features for training data (e.g. TF-IDF matrix)
-    @param: y_train - a numpy array containing labels for each training sample
-    @param: X_test - a numpy matrix containing features for test data (e.g. TF-IDF matrix)
-    @param: y_test - a numpy array containing labels for each test sample
-    """
-    clf = RandomForestClassifier(n_estimators=100, max_depth=2,
-                                 random_state=0)  # please choose all necessary parameters
-    clf.fit(X_train, y_train)
-
-    y_predicted = clf.predict(X_test)
-    rf_accuracy = accuracy_score(y_test, y_predicted)
-    rf_f1 = f1_score(y_test, y_predicted, average="weighted")
-
+    X_smote, y_smote = smote_training(X_train, y_train)
+    rf = RandomForestClassifier(n_estimators=160, min_samples_split=10, max_features=2,verbose=True,n_jobs=-1)
+    rf.fit(X_smote, y_smote)
+    y_pred_rf = rf.predict(X_test)
+    rf_accuracy = accuracy_score(y_test, y_pred_rf)
+    rf_f1 = f1_score(y_test, y_pred_rf, average="weighted")
     return rf_accuracy, rf_f1
 
 
 def model_gradient_boosting(X_train, y_train, X_test, y_test):
+    X_smote, y_smote = smote_training(X_train, y_train)
     gbc = GradientBoostingClassifier(n_estimators=162, learning_rate=0.08, min_samples_split=341, min_samples_leaf=31,
-                                     max_depth=15, subsample=0.87, random_state=10, verbose=True)
-    gbc.fit(X_train, y_train)
-
+                                     max_depth=15, subsample=0.87, verbose=True)
+    gbc.fit(X_smote, y_smote)
     y_predicted = gbc.predict(X_test)
     gbc_accuracy = accuracy_score(y_test, y_predicted)
     gbc_f1 = f1_score(y_test, y_predicted, average="weighted")
-
     return gbc_accuracy, gbc_f1
 
 
@@ -86,18 +97,18 @@ if __name__ == "__main__":
     y_path = "Y_train_CVw08PX.csv"
     X_train, X_test, y_train, y_test = load_data(x_path, y_path, test=True)
 
+    dt_acc,dt_f1 = model_decision_tree(X_train, y_train, X_test, y_test)
+
+    bag_acc,bag_f1 = model_bagging(X_train, y_train, X_test, y_test)
+
+    rf_acc,rf_f1 = model_random_forest(X_train, y_train, X_test, y_test)
+
     gbc_acc, gbc_f1 = model_gradient_boosting(X_train, y_train, X_test, y_test)
 
-    #model_1_acc, model_1_f1 = run_model_1(...)
-    #model_2_acc, model_2_f1 = run_model_2(...)
-    """
-        etc.
-    """
 
     # print the results
-    #print("model_1", model_1_acc, model_1_f1)
-    #print("model_2", model_2_acc, model_2_f1)
+    print("Decision tree", dt_acc, dt_f1)
+    print("Bagging decision tree", bag_acc, bag_f1)
+    print("Random forest",rf_acc,rf_f1)
     print("Gradient boosting tree",gbc_acc,gbc_f1)
-    """
-        etc.
-    """
+
