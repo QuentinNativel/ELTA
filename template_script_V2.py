@@ -3,7 +3,14 @@
     
     This script serves as a template. Please use proper comments and meaningful variable names.
 """
+import numpy as np
+from sklearn import tree
+from sklearn.ensemble import (AdaBoostClassifier, GradientBoostingClassifier,
+                              RandomForestClassifier)
+from sklearn.metrics import accuracy_score, f1_score
+
 from dataset_tool import load_data
+
 
 """
     Group Members:
@@ -15,11 +22,6 @@ from dataset_tool import load_data
 """
     Import necessary packages
 """
-import numpy as np
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import f1_score
-from sklearn import tree
 
 
 """
@@ -71,6 +73,20 @@ def model_gradient_boosting(X_train, y_train, X_test, y_test):
     return gbc_accuracy, gbc_f1
 
 
+def model_adaboost(X_train, y_train, X_test, y_test):
+    estimators = 100
+    alpha = 0.1
+    random = None
+    ada = AdaBoostClassifier(base_estimator=tree.DecisionTreeClassifier(max_depth=300),
+                             n_estimators=estimators, learning_rate=alpha, random_state=random)
+
+    ada.fit(X_train, y_train)
+    y_pred = ada.predict(X_test)
+    ada_acc = accuracy_score(y_test, y_pred)
+    ada_f1 = f1_score(y_test, y_pred, average="weighted")
+    return ada_acc, ada_f1
+
+
 """
    The main function should print all the accuracies and F1 scores for all the models.
    
@@ -87,7 +103,8 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = load_data(x_path, y_path, test=True)
 
     gbc_acc, gbc_f1 = model_gradient_boosting(X_train, y_train, X_test, y_test)
-
+    ada_acc, ada_f1 = model_adaboost(
+        X_train, y_train, X_test, y_test)
     #model_1_acc, model_1_f1 = run_model_1(...)
     #model_2_acc, model_2_f1 = run_model_2(...)
     """
@@ -97,7 +114,8 @@ if __name__ == "__main__":
     # print the results
     #print("model_1", model_1_acc, model_1_f1)
     #print("model_2", model_2_acc, model_2_f1)
-    print("Gradient boosting tree",gbc_acc,gbc_f1)
+    print("Gradient boosting tree", gbc_acc, gbc_f1)
+    print("Adaboost", ada_acc, ada_f1)
     """
         etc.
     """
