@@ -24,7 +24,7 @@ def load_data(train_path, label_path, test, token_path='tokens.csv', test_size=0
     X = tfidf.fit_transform(x_df['tokens'])
     y = y_df.prdtypecode
     if test:
-        return train_test_split(X, y, test_size=test_size, random_state=42)
+        return train_test_split(X, y, test_size=test_size)
     else:
         return X, y
 
