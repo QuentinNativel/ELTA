@@ -3,23 +3,26 @@
     
     This script serves as a template. Please use proper comments and meaningful variable names.
 """
+import numpy as np
+from sklearn import tree
+from sklearn.ensemble import (AdaBoostClassifier, BaggingClassifier,
+                              GradientBoostingClassifier,
+                              RandomForestClassifier)
+from sklearn.metrics import accuracy_score, f1_score
+
 from dataset_tool import load_data, smote_training
+
 
 """
     Group Members:
-        (1) ...
-        (2) ...  
-        etc.
+        (1) Marine Sobas
+        (2) Sunjidmaa Shagdarsuren
+        (3) Quentin Nativel  
 """
 
 """
     Import necessary packages
 """
-import numpy as np
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, BaggingClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import f1_score
-from sklearn import tree
 
 
 """
@@ -63,7 +66,8 @@ def model_bagging(X_train, y_train, X_test, y_test):
 
 def model_random_forest(X_train, y_train, X_test, y_test):
     X_smote, y_smote = smote_training(X_train, y_train)
-    rf = RandomForestClassifier(n_estimators=160, min_samples_split=10, max_features=2,verbose=True,n_jobs=-1)
+    rf = RandomForestClassifier(
+        n_estimators=160, min_samples_split=10, max_features=2, verbose=True, n_jobs=-1)
     rf.fit(X_smote, y_smote)
     y_pred_rf = rf.predict(X_test)
     rf_accuracy = accuracy_score(y_test, y_pred_rf)
@@ -82,6 +86,20 @@ def model_gradient_boosting(X_train, y_train, X_test, y_test):
     return gbc_accuracy, gbc_f1
 
 
+def model_adaboost(X_train, y_train, X_test, y_test):
+    estimators = 100
+    alpha = 0.1
+    random = None
+    ada = AdaBoostClassifier(base_estimator=tree.DecisionTreeClassifier(max_depth=300),
+                             n_estimators=estimators, learning_rate=alpha, random_state=random)
+
+    ada.fit(X_train, y_train)
+    y_pred = ada.predict(X_test)
+    ada_acc = accuracy_score(y_test, y_pred)
+    ada_f1 = f1_score(y_test, y_pred, average="weighted")
+    return ada_acc, ada_f1
+
+
 """
    The main function should print all the accuracies and F1 scores for all the models.
    
@@ -97,18 +115,20 @@ if __name__ == "__main__":
     y_path = "Y_train_CVw08PX.csv"
     X_train, X_test, y_train, y_test = load_data(x_path, y_path, test=True)
 
-    dt_acc,dt_f1 = model_decision_tree(X_train, y_train, X_test, y_test)
+    dt_acc, dt_f1 = model_decision_tree(X_train, y_train, X_test, y_test)
 
-    bag_acc,bag_f1 = model_bagging(X_train, y_train, X_test, y_test)
+    bag_acc, bag_f1 = model_bagging(X_train, y_train, X_test, y_test)
 
-    rf_acc,rf_f1 = model_random_forest(X_train, y_train, X_test, y_test)
+    rf_acc, rf_f1 = model_random_forest(X_train, y_train, X_test, y_test)
 
     gbc_acc, gbc_f1 = model_gradient_boosting(X_train, y_train, X_test, y_test)
 
+    ada_acc, ada_f1 = model_adaboost(
+        X_train, y_train, X_test, y_test)
 
     # print the results
     print("Decision tree", dt_acc, dt_f1)
     print("Bagging decision tree", bag_acc, bag_f1)
-    print("Random forest",rf_acc,rf_f1)
-    print("Gradient boosting tree",gbc_acc,gbc_f1)
-
+    print("Random forest", rf_acc, rf_f1)
+    print("Gradient boosting tree", gbc_acc, gbc_f1)
+    print("Adaboost", ada_acc, ada_f1)
